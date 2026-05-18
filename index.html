@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Devloom — Online Code Editor</title>
+
+  <!-- Google Fonts: JetBrains Mono (code) + Syne (UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- CodeMirror 5 (syntax highlighting editor) via CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/theme/dracula.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/theme/eclipse.min.css" />
+
+  <!-- Main stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       TOP NAVBAR
+  ═══════════════════════════════════════════ -->
+  <header class="navbar">
+    <div class="navbar__brand">
+      <!-- Devloom logo: interlocked < > threads icon -->
+      <svg class="brand-svg" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="28" height="28" rx="7" fill="#7C3AED"/>
+        <path d="M6 10L11 14L6 18" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M22 10L17 14L22 18" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="13" y1="9" x2="15" y2="19" stroke="#e9d5ff" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <span class="brand-name">Dev<span class="accent">loom</span></span>
+    </div>
+
+    <div class="navbar__center">
+      <!-- File name display / edit -->
+      <div class="file-title-wrap">
+        <input
+          type="text"
+          id="fileTitle"
+          class="file-title-input"
+          value="untitled"
+          spellcheck="false"
+          title="Click to rename"
+        />
+        <span class="file-ext">.html</span>
+      </div>
+    </div>
+
+    <div class="navbar__actions">
+      <!-- New file -->
+      <button class="btn btn--ghost" id="btnNew" title="New File">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        New
+      </button>
+
+      <!-- Save -->
+      <button class="btn btn--ghost" id="btnSave" title="Save (Ctrl+S)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save
+      </button>
+
+      <!-- Download -->
+      <button class="btn btn--ghost" id="btnDownload" title="Download as HTML">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download
+      </button>
+
+      <!-- Theme toggle -->
+      <button class="btn btn--ghost btn--icon" id="btnTheme" title="Toggle Theme">
+        <span id="themeIcon">☀️</span>
+      </button>
+
+      <!-- Run -->
+      <button class="btn btn--run" id="btnRun" title="Run Code (Ctrl+Enter)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Run
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════
+       MAIN WORKSPACE
+  ═══════════════════════════════════════════ -->
+  <main class="workspace">
+
+    <!-- ── LEFT PANEL: Editor ── -->
+    <section class="panel panel--editor" id="editorPanel">
+
+      <!-- Tab bar -->
+      <div class="tab-bar">
+        <button class="tab tab--active" data-tab="html">
+          <span class="tab-dot tab-dot--html"></span> HTML
+        </button>
+        <button class="tab" data-tab="css">
+          <span class="tab-dot tab-dot--css"></span> CSS
+        </button>
+        <button class="tab" data-tab="js">
+          <span class="tab-dot tab-dot--js"></span> JS
+        </button>
+
+        <div class="tab-bar__right">
+          <!-- Copy button -->
+          <button class="btn btn--ghost btn--xs" id="btnCopy" title="Copy current tab code">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy
+          </button>
+          <!-- Format button -->
+          <button class="btn btn--ghost btn--xs" id="btnFormat" title="Auto-indent code">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></svg>
+            Format
+          </button>
+        </div>
+      </div>
+
+      <!-- CodeMirror editors (one per language, only active one is shown) -->
+      <div class="editor-container">
+        <div class="editor-pane active" id="pane-html">
+          <textarea id="editor-html"></textarea>
+        </div>
+        <div class="editor-pane" id="pane-css">
+          <textarea id="editor-css"></textarea>
+        </div>
+        <div class="editor-pane" id="pane-js">
+          <textarea id="editor-js"></textarea>
+        </div>
+      </div>
+
+      <!-- Status bar -->
+      <div class="status-bar">
+        <span id="statusLang">HTML</span>
+        <span id="statusCursor">Ln 1, Col 1</span>
+        <span id="statusSaved" class="status-saved">● Unsaved</span>
+        <span id="statusMsg"></span>
+      </div>
+    </section>
+
+    <!-- Drag resize handle -->
+    <div class="resize-handle" id="resizeHandle"></div>
+
+    <!-- ── RIGHT PANEL: Output + Console ── -->
+    <section class="panel panel--output" id="outputPanel">
+
+      <div class="output-header">
+        <div class="output-tabs">
+          <button class="output-tab output-tab--active" data-output="preview">Preview</button>
+          <button class="output-tab" data-output="console">Console <span class="console-badge" id="consoleBadge" style="display:none">0</span></button>
+        </div>
+        <div class="output-header__right">
+          <!-- Auto-run toggle -->
+          <label class="toggle-label" title="Auto-run on every keystroke">
+            <input type="checkbox" id="autoRun" />
+            <span class="toggle-slider"></span>
+            <span>Auto-run</span>
+          </label>
+          <!-- Refresh preview -->
+          <button class="btn btn--ghost btn--xs" id="btnRefresh" title="Refresh preview">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Preview iframe -->
+      <div class="output-pane active" id="output-preview">
+        <iframe id="previewFrame" sandbox="allow-scripts allow-modals allow-same-origin allow-forms allow-popups" title="Code Output"></iframe>
+      </div>
+
+      <!-- Console panel -->
+      <div class="output-pane" id="output-console">
+        <div class="console-toolbar">
+          <span class="console-label">CONSOLE OUTPUT</span>
+          <button class="btn btn--ghost btn--xs" id="btnClearConsole">Clear</button>
+        </div>
+        <div class="console-output" id="consoleOutput">
+          <div class="console-placeholder">Console output will appear here after running code…</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ═══════════════════════════════════════════
+       MODALS
+  ═══════════════════════════════════════════ -->
+
+  <!-- New File confirmation modal -->
+  <div class="modal-backdrop" id="modalNewFile">
+    <div class="modal">
+      <div class="modal__icon">⚠️</div>
+      <h2 class="modal__title">Create New File?</h2>
+      <p class="modal__body">Your unsaved changes will be lost. Continue?</p>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" id="modalCancel">Cancel</button>
+        <button class="btn btn--danger" id="modalConfirm">Yes, clear it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ═══════════════════════════════════════════
+       SCRIPTS
+  ═══════════════════════════════════════════ -->
+
+  <!-- CodeMirror core -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.js"></script>
+
+  <!-- CodeMirror modes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/htmlmixed/htmlmixed.min.js"></script>
+
+  <!-- CodeMirror addons -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/edit/closetag.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/comment/comment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/selection/active-line.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/fold/foldcode.min.js"></script>
+
+  <!-- JSZip for zip download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <!-- Main script -->
+  <script src="script.js"></script>
+</body>
+</html>
