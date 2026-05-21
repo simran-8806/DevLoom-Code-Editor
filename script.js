@@ -96,7 +96,7 @@ const btn = document.getElementById('btn');
 
 btn.addEventListener('click', () => {
   const messages = [
-    'Hello from CodeForge! 🚀',
+    'Hello from DevLoom! 🚀',
     'You clicked me again! 😄',
     'Keep coding! 💻',
     'You are awesome! ⭐',
