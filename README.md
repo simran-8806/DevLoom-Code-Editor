@@ -314,15 +314,8 @@ No build tools or installation required.
 
 ---
 
-# 📸 Screenshots
-
-## Dark Theme Editor
-_Add screenshot here_
-
----
-
-## Console Output
-_Add screenshot here_
+# 📸 Project Screenshots
+![DevLoom Screenshot](devloomSS.png)
 
 ---
 
